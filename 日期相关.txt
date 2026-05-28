@@ -1,0 +1,796 @@
+MySQL 日期函数知识点整理（LeetCode SQL 常用）
+
+一、日期类型
+
+DATE        -- 只有日期：'2024-01-15'
+TIME        -- 只有时间：'13:45:30'
+DATETIME    -- 日期 + 时间：'2024-01-15 13:45:30'
+TIMESTAMP   -- 时间戳，通常和时区有关
+YEAR        -- 年份：2024
+
+最常用：DATE、DATETIME
+
+
+二、日期常用功能
+
+1、获取当前日期时间
+
+CURDATE() / CURRENT_DATE()
+作用：获取当前日期
+示例：
+SELECT CURDATE();
+
+结果示例：
+2026-05-28
+
+
+NOW() / CURRENT_TIMESTAMP()
+作用：获取当前日期和时间
+示例：
+SELECT NOW();
+
+结果示例：
+2026-05-28 14:30:20
+
+
+CURTIME()
+作用：获取当前时间
+示例：
+SELECT CURTIME();
+
+结果示例：
+14:30:20
+
+
+说明：
+LeetCode 中这类函数用得不多，因为题目一般给定固定数据。
+
+
+2、提取年月日时分秒
+
+YEAR(date)
+作用：提取年份
+示例：
+SELECT YEAR('2024-03-15');
+
+结果：
+2024
+
+
+MONTH(date)
+作用：提取月份
+示例：
+SELECT MONTH('2024-03-15');
+
+结果：
+3
+
+
+DAY(date) / DAYOFMONTH(date)
+作用：提取日期中的“日”
+示例：
+SELECT DAY('2024-03-15');
+
+结果：
+15
+
+
+HOUR(datetime)
+作用：提取小时
+示例：
+SELECT HOUR('2024-03-15 09:30:45');
+
+结果：
+9
+
+
+MINUTE(datetime)
+作用：提取分钟
+示例：
+SELECT MINUTE('2024-03-15 09:30:45');
+
+结果：
+30
+
+
+SECOND(datetime)
+作用：提取秒
+示例：
+SELECT SECOND('2024-03-15 09:30:45');
+
+结果：
+45
+
+
+常见用法：按年、月、日分组统计
+
+示例：按年份统计订单数
+SELECT YEAR(order_date) AS year, COUNT(*) AS order_count
+FROM Orders
+GROUP BY YEAR(order_date);
+
+示例：按月份统计订单数
+SELECT MONTH(order_date) AS month, COUNT(*) AS order_count
+FROM Orders
+GROUP BY MONTH(order_date);
+
+
+3、日期加减
+
+DATE_ADD(date, INTERVAL n unit)
+作用：给日期加上一段时间
+
+示例：加 1 天
+SELECT DATE_ADD('2024-01-15', INTERVAL 1 DAY);
+
+结果：
+2024-01-16
+
+
+示例：加 1 个月
+SELECT DATE_ADD('2024-01-15', INTERVAL 1 MONTH);
+
+结果：
+2024-02-15
+
+
+示例：加 1 年
+SELECT DATE_ADD('2024-01-15', INTERVAL 1 YEAR);
+
+结果：
+2025-01-15
+
+
+DATE_SUB(date, INTERVAL n unit)
+作用：给日期减去一段时间
+
+示例：减 1 天
+SELECT DATE_SUB('2024-01-15', INTERVAL 1 DAY);
+
+结果：
+2024-01-14
+
+
+常见单位：
+SECOND
+MINUTE
+HOUR
+DAY
+WEEK
+MONTH
+QUARTER
+YEAR
+
+
+LeetCode 常见用法：找前一天或后一天
+
+示例：Rising Temperature
+SELECT w1.id
+FROM Weather AS w1
+JOIN Weather AS w2
+ON w1.recordDate = DATE_ADD(w2.recordDate, INTERVAL 1 DAY)
+WHERE w1.temperature > w2.temperature;
+
+解释：
+w2 是前一天
+w1 是后一天
+w1.recordDate = w2.recordDate + 1 天
+
+
+4、计算两个日期相差多少天
+
+DATEDIFF(date1, date2)
+作用：计算 date1 和 date2 相差多少天
+公式：date1 - date2
+
+示例：
+SELECT DATEDIFF('2024-01-20', '2024-01-15');
+
+结果：
+5
+
+
+示例：
+SELECT DATEDIFF('2024-01-15', '2024-01-20');
+
+结果：
+-5
+
+
+注意：
+DATEDIFF() 只看日期部分，不关心小时、分钟、秒。
+
+示例：
+SELECT DATEDIFF('2024-01-20 23:59:59', '2024-01-15 00:00:00');
+
+结果：
+5
+
+
+LeetCode 常见用法：判断两个日期是否相差 1 天
+
+SELECT w1.id
+FROM Weather AS w1
+JOIN Weather AS w2
+ON DATEDIFF(w1.recordDate, w2.recordDate) = 1
+WHERE w1.temperature > w2.temperature;
+
+
+5、计算更精确的时间差
+
+TIMESTAMPDIFF(unit, start_time, end_time)
+作用：按指定单位计算两个时间的差值
+公式：end_time - start_time
+
+示例：相差多少天
+SELECT TIMESTAMPDIFF(DAY, '2024-01-15', '2024-01-20');
+
+结果：
+5
+
+
+示例：相差多少小时
+SELECT TIMESTAMPDIFF(HOUR, '2024-01-15 10:00:00', '2024-01-15 15:30:00');
+
+结果：
+5
+
+
+示例：相差多少分钟
+SELECT TIMESTAMPDIFF(MINUTE, '2024-01-15 10:00:00', '2024-01-15 15:30:00');
+
+结果：
+330
+
+
+常见单位：
+SECOND
+MINUTE
+HOUR
+DAY
+MONTH
+YEAR
+
+
+DATEDIFF() 和 TIMESTAMPDIFF() 的区别：
+
+DATEDIFF(date1, date2)
+只能计算相差多少天。
+
+TIMESTAMPDIFF(unit, start, end)
+可以指定单位，计算天、小时、分钟、秒、月、年。
+
+
+6、日期格式化
+
+DATE_FORMAT(date, format)
+作用：把日期按照指定格式输出
+
+示例：
+SELECT DATE_FORMAT('2024-03-15', '%Y-%m');
+
+结果：
+2024-03
+
+
+常见用法：按月份分组
+
+SELECT DATE_FORMAT(order_date, '%Y-%m') AS month, COUNT(*) AS order_count
+FROM Orders
+GROUP BY DATE_FORMAT(order_date, '%Y-%m');
+
+
+常见格式符：
+
+%Y    四位年份，例如 2024
+%y    两位年份，例如 24
+%m    两位月份，例如 03
+%c    月份，例如 3
+%d    两位日期，例如 05
+%e    日期，例如 5
+%H    小时，00-23
+%h    小时，01-12
+%i    分钟
+%s    秒
+%W    星期英文名，例如 Monday
+%a    星期英文缩写，例如 Mon
+%M    月份英文名，例如 March
+%b    月份英文缩写，例如 Mar
+
+
+示例：
+SELECT DATE_FORMAT('2024-03-05 09:08:07', '%Y-%m-%d');
+
+结果：
+2024-03-05
+
+
+示例：
+SELECT DATE_FORMAT('2024-03-05 09:08:07', '%Y/%m/%d %H:%i:%s');
+
+结果：
+2024/03/05 09:08:07
+
+
+注意：
+分钟是 %i，不是 %m。
+%m 表示月份。
+
+
+7、字符串转日期
+
+STR_TO_DATE(str, format)
+作用：把字符串按照指定格式转成日期
+
+示例：
+SELECT STR_TO_DATE('2024-03-15', '%Y-%m-%d');
+
+结果：
+2024-03-15
+
+
+示例：
+SELECT STR_TO_DATE('03/15/2024', '%m/%d/%Y');
+
+结果：
+2024-03-15
+
+
+示例：
+SELECT STR_TO_DATE('2024年03月15日', '%Y年%m月%d日');
+
+结果：
+2024-03-15
+
+
+8、获取星期相关信息
+
+DAYOFWEEK(date)
+作用：返回一周中的第几天
+
+MySQL 规则：
+1 = Sunday
+2 = Monday
+3 = Tuesday
+4 = Wednesday
+5 = Thursday
+6 = Friday
+7 = Saturday
+
+示例：
+SELECT DAYOFWEEK('2024-03-15');
+
+
+WEEKDAY(date)
+作用：返回一周中的第几天
+
+MySQL 规则：
+0 = Monday
+1 = Tuesday
+2 = Wednesday
+3 = Thursday
+4 = Friday
+5 = Saturday
+6 = Sunday
+
+示例：
+SELECT WEEKDAY('2024-03-15');
+
+
+DAYNAME(date)
+作用：返回星期英文名
+
+示例：
+SELECT DAYNAME('2024-03-15');
+
+结果：
+Friday
+
+
+WEEK(date)
+作用：返回一年中的第几周
+
+示例：
+SELECT WEEK('2024-03-15');
+
+
+DAYOFYEAR(date)
+作用：返回一年中的第几天
+
+示例：
+SELECT DAYOFYEAR('2024-03-15');
+
+
+注意：
+DAYOFWEEK() 和 WEEKDAY() 的编号规则不同。
+
+
+9、获取月份、季度、月末日期
+
+QUARTER(date)
+作用：返回日期所在季度
+
+示例：
+SELECT QUARTER('2024-03-15');
+
+结果：
+1
+
+
+MONTHNAME(date)
+作用：返回月份英文名
+
+示例：
+SELECT MONTHNAME('2024-03-15');
+
+结果：
+March
+
+
+LAST_DAY(date)
+作用：返回该日期所在月份的最后一天
+
+示例：
+SELECT LAST_DAY('2024-02-10');
+
+结果：
+2024-02-29
+
+
+示例：
+SELECT LAST_DAY('2023-02-10');
+
+结果：
+2023-02-28
+
+
+10、提取日期部分或时间部分
+
+DATE(datetime)
+作用：从 DATETIME 中提取日期部分
+
+示例：
+SELECT DATE('2024-03-15 09:30:45');
+
+结果：
+2024-03-15
+
+
+TIME(datetime)
+作用：从 DATETIME 中提取时间部分
+
+示例：
+SELECT TIME('2024-03-15 09:30:45');
+
+结果：
+09:30:45
+
+
+常见用法：按日期统计，不关心具体时间
+
+SELECT DATE(created_at) AS day, COUNT(*) AS cnt
+FROM Orders
+GROUP BY DATE(created_at);
+
+
+11、类型转换
+
+CAST(value AS DATE)
+作用：把字符串转成 DATE 类型
+
+示例：
+SELECT CAST('2024-03-15' AS DATE);
+
+
+CAST(value AS DATETIME)
+作用：把字符串转成 DATETIME 类型
+
+示例：
+SELECT CAST('2024-03-15 09:30:00' AS DATETIME);
+
+
+12、UNIX 时间戳
+
+UNIX_TIMESTAMP()
+作用：获取当前时间对应的 UNIX 时间戳
+
+示例：
+SELECT UNIX_TIMESTAMP();
+
+
+UNIX_TIMESTAMP(datetime)
+作用：把日期时间转成 UNIX 时间戳
+
+示例：
+SELECT UNIX_TIMESTAMP('2024-03-15 09:30:00');
+
+
+FROM_UNIXTIME(timestamp)
+作用：把 UNIX 时间戳转成日期时间
+
+示例：
+SELECT FROM_UNIXTIME(1710475800);
+
+
+FROM_UNIXTIME(timestamp, format)
+作用：把 UNIX 时间戳转成指定格式
+
+示例：
+SELECT FROM_UNIXTIME(1710475800, '%Y-%m-%d');
+
+
+说明：
+UNIX 时间戳是从 1970-01-01 00:00:00 UTC 开始经过的秒数。
+
+
+13、时间部分的加减和差值
+
+ADDTIME(time1, time2)
+作用：给时间加上一段时间
+
+示例：
+SELECT ADDTIME('09:30:00', '00:10:00');
+
+结果：
+09:40:00
+
+
+TIMEDIFF(time1, time2)
+作用：计算两个时间的差值
+
+示例：
+SELECT TIMEDIFF('10:30:00', '09:15:00');
+
+结果：
+01:15:00
+
+
+注意：
+TIMEDIFF() 返回的是时间格式，不是数字。
+如果想得到分钟数、小时数，优先用 TIMESTAMPDIFF()。
+
+示例：
+SELECT TIMESTAMPDIFF(MINUTE, '2024-01-01 09:15:00', '2024-01-01 10:30:00');
+
+结果：
+75
+
+
+14、判断日期是否为空
+
+找日期为空的记录：
+
+SELECT *
+FROM Orders
+WHERE order_date IS NULL;
+
+
+找日期不为空的记录：
+
+SELECT *
+FROM Orders
+WHERE order_date IS NOT NULL;
+
+
+注意：
+不能写 order_date = NULL。
+SQL 中判断 NULL 必须使用 IS NULL 或 IS NOT NULL。
+
+
+三、LeetCode 日期题常见套路
+
+1、找前一天 / 后一天
+
+写法一：DATE_ADD()
+
+ON w1.recordDate = DATE_ADD(w2.recordDate, INTERVAL 1 DAY)
+
+
+写法二：DATEDIFF()
+
+ON DATEDIFF(w1.recordDate, w2.recordDate) = 1
+
+
+2、按月份统计
+
+SELECT DATE_FORMAT(trans_date, '%Y-%m') AS month, COUNT(*) AS cnt
+FROM Transactions
+GROUP BY DATE_FORMAT(trans_date, '%Y-%m');
+
+
+3、筛选某个日期范围
+
+如果字段是 DATE 类型：
+
+SELECT *
+FROM Orders
+WHERE order_date BETWEEN '2024-01-01' AND '2024-01-31';
+
+
+如果字段是 DATETIME 类型，更推荐：
+
+SELECT *
+FROM Orders
+WHERE created_at >= '2024-01-01'
+  AND created_at < '2024-02-01';
+
+
+原因：
+'2024-01-31' 等价于 '2024-01-31 00:00:00'。
+如果使用 BETWEEN '2024-01-01' AND '2024-01-31'，可能漏掉 2024-01-31 白天的数据。
+
+
+4、找最近 N 天
+
+示例：找最近 30 天
+
+SELECT *
+FROM Activity
+WHERE activity_date >= DATE_SUB('2019-07-27', INTERVAL 30 DAY)
+  AND activity_date <= '2019-07-27';
+
+
+注意：
+是否包含当天、是否包含第 30 天，要根据题意判断。
+
+
+5、按天分组
+
+SELECT DATE(created_at) AS day, COUNT(*) AS cnt
+FROM Logins
+GROUP BY DATE(created_at);
+
+
+四、最常用日期函数汇总
+
+CURDATE()
+获取当前日期
+
+NOW()
+获取当前日期和时间
+
+YEAR(date)
+提取年份
+
+MONTH(date)
+提取月份
+
+DAY(date)
+提取日期中的“日”
+
+DATE(datetime)
+提取日期部分
+
+TIME(datetime)
+提取时间部分
+
+DATEDIFF(date1, date2)
+计算两个日期相差多少天
+
+DATE_ADD(date, INTERVAL n unit)
+日期加法
+
+DATE_SUB(date, INTERVAL n unit)
+日期减法
+
+TIMESTAMPDIFF(unit, start, end)
+按指定单位计算时间差
+
+DATE_FORMAT(date, format)
+日期格式化
+
+STR_TO_DATE(str, format)
+字符串转日期
+
+LAST_DAY(date)
+获取当月最后一天
+
+
+五、容易错的点
+
+1、DATEDIFF() 的顺序不能反
+
+DATEDIFF('2024-01-20', '2024-01-15') = 5
+DATEDIFF('2024-01-15', '2024-01-20') = -5
+
+
+2、DATE_ADD() / DATE_SUB() 中的单位不要加引号
+
+正确：
+DATE_ADD(recordDate, INTERVAL 1 DAY)
+
+错误：
+DATE_ADD(recordDate, INTERVAL 1 'DAY')
+
+
+3、DATE_FORMAT() 中分钟是 %i，不是 %m
+
+正确：
+DATE_FORMAT(time_col, '%H:%i:%s')
+
+错误：
+DATE_FORMAT(time_col, '%H:%m:%s')
+
+说明：
+%i 表示分钟
+%m 表示月份
+
+
+4、DAYOFWEEK() 和 WEEKDAY() 编号不同
+
+DAYOFWEEK():
+Sunday = 1
+
+WEEKDAY():
+Monday = 0
+
+
+5、比较前一天 / 后一天时，不要用 id 判断
+
+错误写法：
+w1.id = w2.id + 1
+
+原因：
+id 不一定连续，也不一定按照日期排序。
+
+正确写法：
+w1.recordDate = DATE_ADD(w2.recordDate, INTERVAL 1 DAY)
+
+或：
+
+DATEDIFF(w1.recordDate, w2.recordDate) = 1
+
+
+六、当前阶段优先掌握
+
+1、判断两个日期是否相差一天
+
+DATEDIFF(a.date, b.date) = 1
+
+
+2、某个日期加一天
+
+DATE_ADD(date_col, INTERVAL 1 DAY)
+
+
+3、某个日期减一天
+
+DATE_SUB(date_col, INTERVAL 1 DAY)
+
+
+4、提取年月
+
+YEAR(date_col)
+MONTH(date_col)
+
+
+5、格式化成年月
+
+DATE_FORMAT(date_col, '%Y-%m')
+
+
+6、按日期分组
+
+DATE(datetime_col)
+
+
+七、记忆方法
+
+遇到“前一天 / 后一天”：
+优先想到 DATE_ADD() 或 DATEDIFF()。
+
+遇到“相差多少天”：
+优先想到 DATEDIFF()。
+
+遇到“相差多少小时 / 分钟 / 秒”：
+优先想到 TIMESTAMPDIFF()。
+
+遇到“按月份统计”：
+优先想到 DATE_FORMAT(date, '%Y-%m')。
+
+遇到“DATETIME 按天统计”：
+优先想到 DATE(datetime_col)。
+
+遇到“日期范围查询”：
+DATE 类型可以用 BETWEEN。
+DATETIME 类型推荐使用 >= 开始日期 AND < 下一天 / 下个月。
