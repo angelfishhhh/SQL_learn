@@ -78,7 +78,7 @@ GROUP BY machine_id
 
 
 ----------------------------
-        BETTER ANSER
+        CORRECT ANSER
 ----------------------------
 
 SELECT 
