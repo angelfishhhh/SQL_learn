@@ -1,0 +1,64 @@
+描述
+
+题目描述
+在一张daily_profits表中，存储了公司每天的利润记录。请计算每一种产品每一天的累计利润，并按profit_date升序输出所有字段。
+具体要求如下：
+计算每一天的累计利润。
+输出结果按profit_date升序排列。
+
+daily_profits表
+profit_id	profit_date	profit
+1	2024-01-01	100.00
+2	2024-01-02	150.00
+3	2024-01-03	200.00
+4	2024-01-04	250.00
+5	2024-01-05	300.00
+输出示例表格
+profit_id	profit_date	profit	cumulative_profit
+1	2024-01-01	100.00	100.00
+2	2024-01-02	150.00	250.00
+3	2024-01-03	200.00	450.00
+4	2024-01-04	250.00	700.00
+5	2024-01-05	300.00	1000.00
+
+示例1
+
+输入：
+DROP TABLE IF EXISTS daily_profits;
+CREATE TABLE `daily_profits` (
+  `profit_id`   INT         NOT NULL,
+  `profit_date` DATE        NOT NULL,
+  `profit`      DECIMAL(10, 2) NOT NULL
+);
+INSERT INTO daily_profits VALUES
+(1, '2024-01-01', 100.00),
+(2, '2024-01-02', 150.00),
+(3, '2024-01-03', 200.00),
+(4, '2024-01-04', 250.00),
+(5, '2024-01-05', 300.00);
+复制
+输出：
+profit_id|profit_date|profit|cumulative_profit
+1|2024-01-01|100.00|100.00
+2|2024-01-02|150.00|250.00
+3|2024-01-03|200.00|450.00
+4|2024-01-04|250.00|700.00
+5|2024-01-05|300.00|1000.00
+
+---------------------
+        ANSER
+---------------------
+SELECT *
+FROM (
+    SELECT
+        profit_id,
+        profit_date,
+        profit,
+        SUM(profit) OVER (
+            ORDER BY profit_date
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) AS cumulative_profit
+    FROM daily_profits
+) AS t
+ORDER BY profit_date ASC
+;
